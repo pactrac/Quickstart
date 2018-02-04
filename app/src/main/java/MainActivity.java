@@ -4,6 +4,14 @@
 
 package com.example.quickstart;
 
+import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.ListMessagesResponse;
+import com.google.api.services.gmail.model.Message;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -45,6 +53,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.jar.Attributes;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
@@ -355,7 +364,46 @@ public class MainActivity extends Activity
          * @throws IOException
          */
 
-       /** private List<String> getDataFromApi() throws IOException {
+// ...
+
+        public class MyClass {
+
+            // ...
+
+
+            /**
+             * List all Messages of the user's mailbox matching the query.
+             *
+             * @param service Authorized Gmail API instance.
+             * @param userId User's email address. The special value "me"
+             * can be used to indicate the authenticated user.
+             * @param query String used to filter the Messages listed.
+             * @throws IOException
+             */
+            public List<Message> listMessagesMatchingQuery(Gmail service, String userId,
+                                                                  String query) throws IOException {
+                ListMessagesResponse response = service.users().messages().list(userId).setQ(query).execute();
+
+                List<Message> messages = new ArrayList<>();
+                while (response.getMessages() != null) {
+                    messages.addAll(response.getMessages());
+                    if (response.getNextPageToken() != null) {
+                        String pageToken = response.getNextPageToken();
+                        response = service.users().messages().list(userId).setQ(query)
+                                .setPageToken(pageToken).execute();
+                    } else {
+                        break;
+                    }
+                }
+
+                for (Message message : messages) {
+                    System.out.println(message.toPrettyString());
+                }
+
+                return messages;
+            }
+
+       /**private List<String> getDataFromApi() throws IOException {
             // Get the labels in the user's account.
             String user = "me";
             List<String> labels = new ArrayList<>();
